@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Task Manager with Reminders</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-light: #6b7280;
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, var(--primary), #8b5cf6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .subtitle {
+      color: var(--text-light);
+      font-size: 1rem;
+      font-weight: 400;
+    }
+    
+    .card {
+      background-color: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.875rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+    
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .task-item {
+      display: flex;
+      align-items: center;
+      padding: 1.25rem;
+      background-color: var(--card);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .task-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .task-content {
+      flex: 1;
+    }
+    
+    .task-title {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+    
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.875rem;
+      color: var(--text-light);
+    }
+    
+    .task-priority {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .priority-high {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+    
+    .priority-medium {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+    
+    .priority-low {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+    
+    .task-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg);
+      color: var(--text-light);
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn-icon:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 3rem 0;
+    }
+    
+    .empty-icon {
+      font-size: 3rem;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+    }
+    
+    .empty-text {
+      color: var(--text-light);
+      margin-bottom: 1.5rem;
+    }
+    
+    @media (max-width: 640px) {
+      .container {
+        padding: 1.5rem;
+      }
+      
+      .task-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      
+      .task-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>AI Task Manager</h1>
+      <p class="subtitle">Smart reminders and task organization</p>
+    </header>
+    
+    <div class="card">
+      <form id="taskForm">
+        <div class="form-group">
+          <input type="text" id="taskInput" class="input-field" 
+                 placeholder="Example: Remind me to call mom tomorrow at 3pm (high priority)" required>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          Add Task
+        </button>
+      </form>
+    </div>
+    
+    <div class="card">
+      <h2 style="margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600;">Your Tasks</h2>
+      
+      <div id="taskList" class="task-list">
+        <!-- Tasks will be inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('taskForm');
+      const input = document.getElementById('taskInput');
+      const taskList = document.getElementById('taskList');
+      
+      // Request notification permission
+      if ('Notification' in window) {
+        Notification.requestPermission();
+      }
+
+      // Format date for display
+      function formatDate(dateString) {
+        if (!dateString) return 'No due date';
+        const date = new Date(dateString);
+        const now = new Date();
+        
+        // If due date is today
+        if (date.toDateString() === now.toDateString()) {
+          return 'Today at ' + date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+        
+        // If due date is tomorrow
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        if (date.toDateString() === tomorrow.toDateString()) {
+          return 'Tomorrow at ' + date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+        
+        return date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+
+      // Get priority class
+      function getPriorityClass(priority) {
+        switch (priority.toLowerCase()) {
+          case 'high': return 'priority-high';
+          case 'low': return 'priority-low';
+          default: return 'priority-medium';
+        }
+      }
+
+      // Load tasks
+      async function loadTasks() {
+        try {
+          const response = await fetch('/tasks');
+          const tasks = await response.json();
+          
+          taskList.innerHTML = '';
+          
+          if (tasks.length === 0) {
+            taskList.innerHTML = `
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p class="empty-text">No tasks found. Add one above!</p>
+              </div>
+            `;
+            return;
+          }
+          
+          tasks.forEach(task => {
+            const taskItem = document.createElement('div');
+            taskItem.className = 'task-item';
+            
+            taskItem.innerHTML = `
+              <div class="task-content">
+                <div class="task-title">${task.title}</div>
+                <div class="task-meta">
+                  <span>${formatDate(task.due_date)}</span>
+                  <span class="task-priority ${getPriorityClass(task.priority)}">
+                    ${task.priority} priority
+                  </span>
+                </div>
+              </div>
+              <div class="task-actions">
+                ${task.status === 'pending' ? 
+                  `<button class="btn-icon" data-id="${task.id}" title="Complete">
+                    ✓
+                  </button>` : 
+                  `<span style="color: var(--success);">✓ Done</span>`}
+              </div>
+            `;
+            
+            taskList.appendChild(taskItem);
+          });
+          
+          // Add event listeners to complete buttons
+          document.querySelectorAll('.btn-icon').forEach(button => {
+            button.addEventListener('click', async function() {
+              const taskId = this.getAttribute('data-id');
+              try {
+                const response = await fetch(`/complete/${taskId}`, {
+                  method: 'POST'
+                });
+                if (response.ok) {
+                  loadTasks();
+                }
+              } catch (error) {
+                console.error('Error completing task:', error);
+              }
+            });
+          });
+        } catch (error) {
+          console.error('Error loading tasks:', error);
+        }
+      }
+
+      // Check for due tasks and show notifications
+      async function checkReminders() {
+        try {
+          const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+          const response = await fetch(`/tasks?due_now=${now}`);
+          const tasks = await response.json();
+          
+          tasks.forEach(task => {
+            // Show browser notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(`🔔 Task Reminder: ${task.title}`, {
+                body: `This task is due now! Priority: ${task.priority}`,
+                icon: '/notification-icon.png'
+              });
+            }
+            
+            // Show sweetalert
+            Swal.fire({
+              title: 'Task Reminder',
+              html: `
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">${task.title}</p>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+                  <span style="background: ${getPriorityClass(task.priority) === 'priority-high' ? '#fee2e2' : 
+                    getPriorityClass(task.priority) === 'priority-medium' ? '#fef3c7' : '#d1fae5'};
+                    color: ${getPriorityClass(task.priority) === 'priority-high' ? '#b91c1c' : 
+                    getPriorityClass(task.priority) === 'priority-medium' ? '#92400e' : '#065f46'};
+                    padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.875rem;">
+                    ${task.priority} priority
+                  </span>
+                  <span style="color: #4b5563;">Due now</span>
+                </div>
+              `,
+              icon: 'info',
+              confirmButtonText: 'Mark as Complete',
+              showCancelButton: true,
+              cancelButtonText: 'Dismiss',
+              confirmButtonColor: '#10b981'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                fetch(`/complete/${task.id}`, { method: 'POST' })
+                  .then(() => loadTasks());
+              }
+            });
+          });
+        } catch (error) {
+          console.error('Error checking reminders:', error);
+        }
+      }
+
+      // Form submission
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const text = input.value.trim();
+        
+        if (!text) return;
+        
+        try {
+          const response = await fetch('/add', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text })
+          });
+          
+          if (response.ok) {
+            input.value = '';
+            loadTasks();
+            Swal.fire({
+              title: 'Task Added!',
+              text: 'Your task has been successfully added',
+              icon: 'success',
+              confirmButtonText: 'OK',
+              timer: 2000
+            });
+          }
+        } catch (error) {
+          console.error('Error adding task:', error);
+          Swal.fire({
+            title: 'Error!',
+            text: 'There was a problem adding your task',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
+      });
+
+      // Initial load
+      loadTasks();
+      
+      // Check reminders every minute
+      setInterval(checkReminders, 60000);
+      checkReminders();
+    });
+  </script>
+</body>
+</html>
